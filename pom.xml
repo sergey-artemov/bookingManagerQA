@@ -12,14 +12,13 @@
 	<groupId>com.sergart</groupId>
 	<artifactId>taskmanagerqa</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+    <name>task-manager-qa</name>
+    <description>Pet project for QA: manual + automated testing (API + DB)</description>
 
 	<properties>
 		<java.version>17</java.version>
 	</properties>
 	<dependencies>
-		<!-- Web (в 3.x он называется просто "web", а не "webmvc") -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
