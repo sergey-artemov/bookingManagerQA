@@ -1,13 +1,13 @@
-package com.sergart.task_manager_qa;
+package com.sergart.booking_manager_qa;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class TaskManagerQaApplication {
+public class BookingManagerQaApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(TaskManagerQaApplication.class, args);
+		SpringApplication.run(BookingManagerQaApplication.class, args);
 	}
 
 }

@@ -10,9 +10,9 @@
 	</parent>
 
 	<groupId>com.sergart</groupId>
-	<artifactId>taskmanagerqa</artifactId>
+	<artifactId>booking-manager-qa</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-    <name>task-manager-qa</name>
+    <name>booking-manager-qa</name>
     <description>Pet project for QA: manual + automated testing (API + DB)</description>
 
 	<properties>
