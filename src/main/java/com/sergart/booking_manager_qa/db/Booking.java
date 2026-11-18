@@ -1,5 +1,6 @@
 package com.sergart.booking_manager_qa.db;
 
+import com.sergart.booking_manager_qa.validation.DatesNotInPast;
 import com.sergart.booking_manager_qa.validation.RoomNumber;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,6 +24,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@DatesNotInPast
 public class Booking {
 
     @Id
@@ -55,8 +57,8 @@ public class Booking {
      * ФИО гостя
      */
     @NotBlank(message = "ФИО гостя обязательно")
-    @Size(max = 100, message = "ФИО не должно превышать 100 символов")
-    @Column(name = "guest_name", nullable = false, length = 100)
+    @Size(max = 100, message = "ФИО не должно превышать 50 символов")
+    @Column(name = "guest_name", nullable = false, length = 50)
     private String guestName;
 
     /**
@@ -78,5 +80,4 @@ public class Booking {
         }
         return !bookedTo.isBefore(bookedFrom);
     }
-
 }
