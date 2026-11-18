@@ -7,7 +7,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class DatesNotInPastValidator implements ConstraintValidator<DatesNotInPast, Booking> {
+public class DatesCheckValidator implements ConstraintValidator<DatesCheck, Booking> {
 
     private static final DateTimeFormatter RU_DATE =
             DateTimeFormatter.ofPattern("dd.MM.yyyy");
@@ -18,14 +18,25 @@ public class DatesNotInPastValidator implements ConstraintValidator<DatesNotInPa
             return true; // null ловит @NotNull
         }
         LocalDate today = LocalDate.now();
-        boolean ok = !booking.getBookedFrom().isBefore(today)
+        boolean ok1 = !booking.getBookedFrom().isBefore(today)
                 && !booking.getBookedTo().isBefore(today);
-        if (!ok) {
+
+        boolean ok2 = booking.getBookedTo().isAfter(booking.getBookedFrom());
+
+        if (!ok1) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(
                             "Даты должны быть не ранее текущей (" + today.format(RU_DATE) + ")")
                     .addConstraintViolation();
         }
-        return ok;
+
+        if (!ok2) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(
+                            "Дата окончания должна быть позже даты начала")
+                    .addConstraintViolation();
+        }
+
+        return ok1 && ok2;
     }
 }

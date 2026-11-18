@@ -10,10 +10,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-@Constraint(validatedBy = DatesNotInPastValidator.class)
+@Constraint(validatedBy = DatesCheckValidator.class)
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface DatesNotInPast {
+public @interface DatesCheck {
     String message() default "Даты должны быть не ранее текущей";
 
     Class<?>[] groups() default {};

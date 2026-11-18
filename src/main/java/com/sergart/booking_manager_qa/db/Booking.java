@@ -1,6 +1,6 @@
 package com.sergart.booking_manager_qa.db;
 
-import com.sergart.booking_manager_qa.validation.DatesNotInPast;
+import com.sergart.booking_manager_qa.validation.DatesCheck;
 import com.sergart.booking_manager_qa.validation.RoomNumber;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,8 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -24,7 +22,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@DatesNotInPast
+@DatesCheck
 public class Booking {
 
     @Id
@@ -57,8 +55,8 @@ public class Booking {
      * ФИО гостя
      */
     @NotBlank(message = "ФИО гостя обязательно")
-    @Size(max = 100, message = "ФИО не должно превышать 50 символов")
-    @Column(name = "guest_name", nullable = false, length = 50)
+    @Size(max = 100, message = "ФИО не должно превышать 100 символов")
+    @Column(name = "guest_name", nullable = false, length = 100)
     private String guestName;
 
     /**
@@ -72,6 +70,7 @@ public class Booking {
     /**
      * Дата окончания должна быть не раньше даты начала
      */
+    /* ПЕРЕНЕСЕНО В DatesCheckValidator
     @AssertTrue(message = "Дата окончания должна быть не раньше даты начала")
     @Transient
     public boolean isDateRangeValid() {
@@ -80,4 +79,5 @@ public class Booking {
         }
         return !bookedTo.isBefore(bookedFrom);
     }
+     */
 }
