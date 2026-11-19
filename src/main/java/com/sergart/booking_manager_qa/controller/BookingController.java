@@ -1,7 +1,9 @@
 package com.sergart.booking_manager_qa.controller;
 
 import com.sergart.booking_manager_qa.db.Booking;
+import com.sergart.booking_manager_qa.exception.NotFoundException;
 import com.sergart.booking_manager_qa.repository.BookingRepository;
+import com.sergart.booking_manager_qa.service.BookingService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,9 +22,12 @@ import java.util.List;
 public class BookingController {
 
     private final BookingRepository bookingRepository;
+    private final BookingService bookingService;
 
-    public BookingController(BookingRepository bookingRepository) {
+
+    public BookingController(BookingRepository bookingRepository, BookingService bookingService) {
         this.bookingRepository = bookingRepository;
+        this.bookingService = bookingService;
     }
 
     @GetMapping
@@ -34,28 +39,23 @@ public class BookingController {
     public ResponseEntity<Booking> getById(@PathVariable Long id) {
         return bookingRepository.findById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new NotFoundException("Бронирование с id=" + id + " не найдено"));
     }
 
     @PostMapping("/new")
-    public ResponseEntity<?> create(@Valid @RequestBody Booking booking) {
-        Booking saved = bookingRepository.save(booking);
-        return ResponseEntity.status(201).body(saved);
+    public ResponseEntity<Booking> create(@Valid @RequestBody Booking booking) {
+        return ResponseEntity.status(201).body(bookingService.create(booking));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody Booking booking) {
-        if (!bookingRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        booking.setId(id);
-        return ResponseEntity.ok(bookingRepository.save(booking));
+    public ResponseEntity<Booking> update(@PathVariable Long id, @Valid @RequestBody Booking booking) {
+        return ResponseEntity.ok(bookingService.update(id, booking));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!bookingRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+            throw new NotFoundException("Бронирование с id=" + id + " не найдено");
         }
         bookingRepository.deleteById(id);
         return ResponseEntity.noContent().build();
