@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
@@ -42,6 +43,7 @@ public class Booking {
      */
     @NotNull(message = "Дата начала бронирования обязательна")
     @Column(name = "booked_from", nullable = false)
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate bookedFrom;
 
     /**
@@ -49,6 +51,7 @@ public class Booking {
      */
     @NotNull(message = "Дата окончания бронирования обязательна")
     @Column(name = "booked_to", nullable = false)
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate bookedTo;
 
     /**

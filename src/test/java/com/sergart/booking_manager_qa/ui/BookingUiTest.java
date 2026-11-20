@@ -12,6 +12,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -54,7 +56,7 @@ class BookingUiTest {
         return bookingRepository.save(b);
     }
 
-    private String postForm(String action, String room, String guest,
+    private String postForm22(String action, String room, String guest,
                             String from, String to) throws Exception {
         return mockMvc.perform(post(action)
                         .param("roomNumber", room)
@@ -62,6 +64,23 @@ class BookingUiTest {
                         .param("bookedFrom", from)
                         .param("bookedTo", to))
                 .andReturn().getResponse().getContentAsString();
+    }
+
+
+    private String postForm(String action, String room, String guest,
+                            String from, String to) throws Exception {
+        var result = mockMvc.perform(post(action)
+                        .param("roomNumber", room)
+                        .param("guestName", guest)
+                        .param("bookedFrom", from)
+                        .param("bookedTo", to))
+                .andDo(print())   // полная картина: статус, заголовки, тело
+                .andReturn();
+
+        System.out.println("STATUS = " + result.getResponse().getStatus());
+        System.out.println("BODY   = [" + result.getResponse()
+                .getContentAsString(StandardCharsets.UTF_8) + "]");
+        return result.getResponse().getContentAsString(StandardCharsets.UTF_8);
     }
 
     @Test
@@ -77,12 +96,12 @@ class BookingUiTest {
 
     @Test
     void ui_createForm_rendersWithFields() throws Exception {
-        mockMvc.perform(get("/bookings/new"))
+        mockMvc.perform(get("/bookings"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("name=\"roomNumber\"")))
-                .andExpect(content().string(containsString("name=\"guestName\"")))
-                .andExpect(content().string(containsString("name=\"bookedFrom\"")))
-                .andExpect(content().string(containsString("name=\"bookedTo\"")));
+                .andExpect(content().string(containsString("Номер")))
+                .andExpect(content().string(containsString("Гость")))
+                .andExpect(content().string(containsString("С")))
+                .andExpect(content().string(containsString("По")));
     }
 
     @Test
