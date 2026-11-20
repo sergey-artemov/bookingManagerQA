@@ -66,6 +66,13 @@ mvn spring-boot:run
 - [Чек-лист ручного тестирования](docs/checklist.md)
 - [Баг-репорты](docs/BUG-001.md)
 
+## Тестирование
+
+Интеграционные тесты на JUnit 5 + Rest Assured.
+Изолированная БД PostgreSQL в Docker-контейнере (Testcontainers).
+Миграции схемы — Flyway.
+Запуск: mvn test (контейнер поднимается и удаляется автоматически).
+
 ## Roadmap
 
 - [x] Модель Booking с валидацией (аннотации + 2 кастомных валидатора)
@@ -73,6 +80,6 @@ mvn spring-boot:run
 - [x] Flyway: схема + seed-данные
 - [x] Обработчик ошибок: аккуратный JSON со списком сообщений вместо стектрейса
 - [x] BUG-001: запрет пересекающихся броней (фикс)
-- [ ] Автотесты: Rest Assured + Testcontainers
+- [x] Автотесты: Rest Assured + Testcontainers
 - [ ] Простой UI (Thymeleaf): список броней + форма
 - [ ] UI-тест (Playwright/Selenium) — 1 сценарий
