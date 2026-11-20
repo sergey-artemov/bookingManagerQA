@@ -1,0 +1,364 @@
+package com.sergart.booking_manager_qa;
+
+import com.sergart.booking_manager_qa.repository.BookingRepository;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import lombok.extern.log4j.Log4j2;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
+@Log4j2
+class BookingApiTest {
+
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine");
+
+    @LocalServerPort
+    int port;
+
+    @Autowired
+    BookingRepository bookingRepository;
+
+    @BeforeEach
+    void setUp() {
+        RestAssured.baseURI = "http://localhost";
+        RestAssured.port = port;
+    }
+
+    // ---------- POS: создание + проверка в БД ----------
+
+    @Test
+    @DisplayName("POS: POST валидной брони -> 201, запись есть в БД")
+    void createBooking_success() {
+        String body = """
+                {
+                  "roomNumber": 550,
+                  "bookedFrom": "2030-06-01",
+                  "bookedTo": "2030-06-05",
+                  "guestName": "Тестов Тест Тестович",
+                  "comment": "автотест POS"
+                }
+                """;
+
+        Integer id = given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when()
+                .post("/api/bookings/new")
+                .then()
+                .statusCode(201)
+                .body("id", notNullValue())
+                .body("roomNumber", equalTo(550))
+                .extract().path("id");
+
+        // проверка второго слоя: запись реально в базе
+        assertThat(bookingRepository.findById(Long.valueOf(id))).isPresent();
+    }
+
+    @Test
+    @DisplayName("POS: DELETE валидной брони -> 204, нет записи в БД")
+    void deleteBooking_success() {
+        int id = createBooking(234, "2030-07-01", "2030-07-05");
+
+        given()
+                .when()
+                .delete("/api/bookings/" + id)
+                .then()
+                .statusCode(204);
+
+        given()
+                .when()
+                .get("/api/bookings/" + id)
+                .then()
+                .statusCode(404);
+        assertThat(bookingRepository.findById((long) id)).isEmpty();
+    }
+
+    // ---------- NEG: валидация полей ----------
+
+    @Test
+    @DisplayName("NEG: POST с roomNumber=999 -> 400 с сообщением о диапазоне")
+    void createBooking_invalidRoom() {
+        String body = """
+                {
+                  "roomNumber": 999,
+                  "bookedFrom": "2030-06-01",
+                  "bookedTo": "2030-06-05",
+                  "guestName": "Тестов Тест Тестович"
+                }
+                """;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when()
+                .post("/api/bookings/new")
+                .then()
+                .statusCode(400)
+                .body("errors", hasItem(containsString("Номер комнаты")));
+    }
+
+    @Test
+    @DisplayName("NEG: POST с пустым запросом -> 400  с сообщением о незаполненных полях")
+    void createBooking_emptyRequest() {
+        String body = "{}";
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when()
+                .post("/api/bookings/new")
+                .then()
+                .statusCode(400)
+                .body("status", equalTo(400))
+                .body("errors", hasItem(containsString("Номер комнаты обязателен")))
+                .body("errors", hasItem(containsString("ФИО гостя обязательно")))
+                .body("errors", hasItem(containsString("Дата начала бронирования обязательна")))
+                .body("errors", hasItem(containsString("Дата окончания бронирования обязательна")))
+        ;
+    }
+
+    @Test
+    @DisplayName("NEG: POST с одинаковыми датами -> 400 с сообщением о датах")
+    void createBooking_equalDates() {
+        String body = """
+                {
+                  "roomNumber": 333,
+                  "bookedFrom": "2030-06-01",
+                  "bookedTo": "2030-06-01",
+                  "guestName": "Тестов1 Тест1 Тестович1"
+                }
+                """;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when()
+                .post("/api/bookings/new")
+                .then()
+                .statusCode(400)
+                .body("errors", hasItem(containsString("Дата окончания должна быть позже даты начала")));
+    }
+
+    @Test
+    @DisplayName("NEG: POST  дата начала больше чем дата окончания -> 400 с сообщением о датах")
+    void createBooking_FromDateAfterToDate() {
+        String body = """
+                {
+                  "roomNumber": 333,
+                  "bookedFrom": "2030-06-01",
+                  "bookedTo": "2030-05-10",
+                  "guestName": "Тестов Тест Тестович"
+                }
+                """;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when()
+                .post("/api/bookings/new")
+                .then()
+                .statusCode(400)
+                .body("errors", hasItem(containsString("Дата окончания должна быть позже даты начала")));
+    }
+
+    @Test
+    @DisplayName("NEG: POST  дата начала или окончания меньше текущей-> 400 с сообщением о датах")
+    void createBooking_DatesLessThatToday() {
+        LocalDate from = LocalDate.now().minusDays(10);
+        LocalDate to = LocalDate.now().minusDays(5);
+
+        String body = """
+                {
+                  "roomNumber": 444,
+                  "bookedFrom": "%s",
+                  "bookedTo": "%s",
+                  "guestName": "Тестов Тест Тестович"
+                }
+                """
+                .formatted(from.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        to.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when()
+                .post("/api/bookings/new")
+                .then()
+                .statusCode(400)
+                .body("errors", hasItem(containsString("не ранее текущей")));
+    }
+
+
+    // ---------- NEG: BUG-001, пересечение интервалов ----------
+
+    @Test
+    @DisplayName("NEG: пересечение дат на один номер -> 409 (регресс BUG-001)")
+    void createBooking_overlap_conflict() {
+        postBooking(501, "2030-07-01", "2030-07-05", 201);   // базовая бронь
+        postBooking(501, "2030-07-04", "2030-07-10", 409);   // пересекается -> конфликт
+    }
+
+    @Test
+    @DisplayName("POS: стык день в день (выезд 05.07 -> заезд 05.07) -> 201")
+    void createBooking_backToBackAllowed() {
+        postBooking(502, "2030-07-01", "2030-07-05", 201);
+        postBooking(502, "2030-07-05", "2030-07-08", 201);   // стык разрешён
+    }
+
+    // ---------- NEG: несуществующий id ----------
+    @Test
+    @DisplayName("NEG: GET несуществующего id -> 404 с JSON-ошибкой")
+    void getBooking_notFound() {
+        given()
+                .when()
+                .get("/api/bookings/999999")
+                .then()
+                .statusCode(404)
+                .body("status", equalTo(404))
+                .body("errors", hasItem(containsString("не найдено")));
+    }
+
+    @Test
+    @DisplayName("NEG: DELETE отсутствующей брони -> 404, нет записи в БД")
+    void deleteBooking_fail() {
+        assertThat(bookingRepository.findById(12345L)).isEmpty();
+        given()
+                .when()
+                .delete("/api/bookings/12345")
+                .then()
+                .statusCode(404)
+                .body("status", equalTo(404))
+                .body("errors", hasItem(containsString("Бронирование с id=12345 не найдено")));
+    }
+
+    //========== Full Life Cycle Test ============================
+    @Test
+    @DisplayName("E2E: создать -> прочитать -> обновить -> поймать конфликт -> удалить")
+    void fullLifecycle_scenario() {
+        int roomNumber = 525;
+        int bookingSize = 8;  // заполнение из V1_init.sql
+
+        // 1. Создание
+        Integer bookingId = createBooking(roomNumber, "2030-09-01", "2030-09-05");
+        log.info("1. CREATED: Booking for room {} is {}", roomNumber, bookingId);
+
+        // 2. Чтение: API и БД согласованы
+        given()
+                .when()
+                .get("/api/bookings/" + bookingId)
+                .then()
+                .statusCode(200)
+                .body("roomNumber", equalTo(roomNumber))
+                .body("bookedFrom", equalTo("2030-09-01"))
+                .body("bookedTo", equalTo("2030-09-05"));
+        assertThat(bookingRepository.findById(Long.valueOf(bookingId))).isPresent();
+        bookingSize++;
+        log.info("2. booking exists in DBA");
+
+        // 3. Обновление: меняем даты и гостя
+        given()
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                          "roomNumber": %s,
+                          "bookedFrom": "2030-09-02",
+                          "bookedTo": "2030-09-06",
+                          "guestName": "Обновлённый Гость",
+                          "comment": "изменено e2e-тестом"
+                        }
+                        """.formatted(roomNumber))
+                .when()
+                .put("/api/bookings/" + bookingId)
+                .then()
+                .statusCode(200)
+                .body("guestName", equalTo("Обновлённый Гость"));
+        log.info("3. PUT new data for room {} ", roomNumber);
+
+        // 4. Конфликт: другая бронь пересекается с обновлённым интервалом
+        postBooking(roomNumber, "2030-09-05", "2030-09-08", 409);
+        // и стык по-прежнему разрешён
+        postBooking(roomNumber, "2030-09-06", "2030-09-08", 201);
+        bookingSize++;
+        log.info("4. Check conflict");
+
+        // 5. Удаление: API и БД
+        given()
+                .when()
+                .delete("/api/bookings/" + bookingId)
+                .then()
+                .statusCode(204);
+        assertThat(bookingRepository.findById(Long.valueOf(bookingId))).isEmpty();
+        bookingSize--;
+        log.info("5. DELETE booking {}", bookingId);
+
+        // 6. Остальные брони должны остаться
+        Response response = given()
+                .when()
+                .get("/api/bookings")
+                .then().statusCode(200)
+                .extract().response();
+        int count = response.jsonPath().getList("$").size();
+        log.info("6. check other booking, count = {}, expected = {}", count, bookingSize);
+        assertEquals(bookingSize, count, "Количество бронирований не совпадает");
+
+    }
+
+    // ---------- хелпер ----------
+    private void postBooking(int room, String from, String to, int expectedStatus) {
+        given()
+                .contentType(ContentType.JSON)
+                .body(bookingJson(room, from, to))
+                .when()
+                .post("/api/bookings/new")
+                .then()
+                .statusCode(expectedStatus);
+    }
+
+    private Integer createBooking(int room, String from, String to) {
+        return given()
+                .contentType(ContentType.JSON)
+                .body(bookingJson(room, from, to))
+                .when()
+                .post("/api/bookings/new")
+                .then()
+                .statusCode(201)
+                .extract().path("id");
+    }
+
+
+    private String bookingJson(int room, String from, String to) {
+        return """
+                {
+                  "roomNumber": %d,
+                  "bookedFrom": "%s",
+                  "bookedTo": "%s",
+                  "guestName": "Тестов Тест Тестович"
+                }
+                """.formatted(room, from, to);
+    }
+}
