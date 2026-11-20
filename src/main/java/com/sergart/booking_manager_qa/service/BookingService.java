@@ -17,6 +17,19 @@ public class BookingService {
         this.repository = repository;
     }
 
+    public List<Booking> findAll() {
+        return repository.findAll();
+    }
+
+    public Booking findById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Бронирование с id=" + id + " не найдено"));
+    }
+
+    public void delete(Long id) {
+        repository.deleteById(id);
+    }
+
     public Booking create(Booking booking) {
         checkOverlap(booking.getRoomNumber(), booking, null);
         return repository.save(booking);

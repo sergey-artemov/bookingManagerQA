@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Бронирования</title>
+    <style>
+        body { font-family: sans-serif; margin: 2rem; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
+        th { background: #f0f0f0; }
+        .btn { padding: 4px 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<h1>Бронирования</h1>
+<a th:href="@{/bookings/new}">Новая бронь</a>
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Номер</th>
+        <th>Гость</th>
+        <th>С</th>
+        <th>По</th>
+        <th>Комментарий</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="b : ${bookings}">
+        <td th:text="${b.id}">1</td>
+        <td th:text="${b.roomNumber}">101</td>
+        <td th:text="${b.guestName}">Иван</td>
+        <td th:text="${b.bookedFrom}">2026-12-01</td>
+        <td th:text="${b.bookedTo}">2026-12-03</td>
+        <td th:text="${b.comment}">—</td>
+        <td>
+            <a th:href="@{/bookings/{id}/edit(id=${b.id})}">Редактировать</a>
+            <form th:action="@{/bookings/{id}/delete(id=${b.id})}" method="post" style="display:inline">
+                <button type="submit" class="btn">Удалить</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
