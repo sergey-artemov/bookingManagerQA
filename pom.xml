@@ -11,7 +11,7 @@
 
 	<groupId>com.sergart</groupId>
 	<artifactId>booking-manager-qa</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
     <name>booking-manager-qa</name>
     <description>Pet project for QA: manual + automated testing (API + DB)</description>
 
@@ -98,6 +98,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-testcontainers</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<!-- Thymeleaf -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 
 	</dependencies>

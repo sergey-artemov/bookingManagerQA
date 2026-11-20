@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Бронирования</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header class="site-header">
+    <img th:src="@{/img/logo.jpg}" alt="Логотип отеля">
+    <h1>Отель «Весёлый Тестировщик»</h1>
+</header>
+
+<div class="list-actions">
+    <a th:href="@{/bookings/new}" class="btn">Новая бронь</a>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th><th>Номер</th><th>Гость</th><th>С</th><th>По</th><th>Комментарий</th><th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="b : ${bookings}">
+        <td th:text="${b.id}">1</td>
+        <td th:text="${b.roomNumber}">101</td>
+        <td th:text="${b.guestName}">Иван</td>
+        <td th:text="${b.bookedFrom}">2026-12-01</td>
+        <td th:text="${b.bookedTo}">2026-12-03</td>
+        <td th:text="${b.comment}">—</td>
+        <td>
+            <a th:href="@{/bookings/{id}/edit(id=${b.id})}" class="btn">Редактировать</a>
+            <form th:action="@{/bookings/{id}/delete(id=${b.id})}" method="post" style="display:inline">
+                <button type="submit"
+                        class="btn btn-danger"
+                        th:attr="data-confirm=|Удаляем бронь № ${b.id}: номер ${b.roomNumber}, гость ${b.guestName}, с ${b.bookedFrom} по ${b.bookedTo}. Вы уверены?|"
+                        onclick="return confirm(this.dataset.confirm)">
+                    Удалить
+                </button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
