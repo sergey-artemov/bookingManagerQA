@@ -2,28 +2,23 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Список бронирований</title>
-    <style>
-        body { font-family: sans-serif; margin: 2rem; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
-        th { background: #f0f0f0; }
-        .btn { padding: 4px 10px; cursor: pointer; }
-    </style>
+    <title>Бронирования</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<h1>Бронирования</h1>
-<a th:href="@{/bookings/new}">Новая бронь</a>
+<header class="site-header">
+    <img th:src="@{/img/logo.jpg}" alt="Логотип отеля">
+    <h1>Отель «Весёлый Тестировщик»</h1>
+</header>
+
+<div class="list-actions">
+    <a th:href="@{/bookings/new}" class="btn">Новая бронь</a>
+</div>
+
 <table>
     <thead>
     <tr>
-        <th>ID</th>
-        <th>Номер</th>
-        <th>Гость</th>
-        <th>С</th>
-        <th>По</th>
-        <th>Комментарий</th>
-        <th></th>
+        <th>ID</th><th>Номер</th><th>Гость</th><th>С</th><th>По</th><th>Комментарий</th><th></th>
     </tr>
     </thead>
     <tbody>
@@ -35,9 +30,14 @@
         <td th:text="${b.bookedTo}">2026-12-03</td>
         <td th:text="${b.comment}">—</td>
         <td>
-            <a th:href="@{/bookings/{id}/edit(id=${b.id})}">Редактировать</a>
+            <a th:href="@{/bookings/{id}/edit(id=${b.id})}" class="btn">Редактировать</a>
             <form th:action="@{/bookings/{id}/delete(id=${b.id})}" method="post" style="display:inline">
-                <button type="submit" class="btn">Удалить</button>
+                <button type="submit"
+                        class="btn btn-danger"
+                        th:attr="data-confirm=|Удаляем бронь № ${b.id}: номер ${b.roomNumber}, гость ${b.guestName}, с ${b.bookedFrom} по ${b.bookedTo}. Вы уверены?|"
+                        onclick="return confirm(this.dataset.confirm)">
+                    Удалить
+                </button>
             </form>
         </td>
     </tr>

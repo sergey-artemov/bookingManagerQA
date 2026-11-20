@@ -1,0 +1,158 @@
+:root {
+    --bg-tint: #a9dbe2;
+    --bg-tint-dark: #8ec6d2;
+    --primary: #1f7ea1;
+    --primary-dark: #155a73;
+    --navy: #1d3d5c;
+    --danger: #d9534f;
+    --card: #ffffff;
+}
+
+@font-face {
+    font-family: "Nunito";
+    src: url("/fonts/Nunito-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Nunito";
+    src: url("/fonts/Nunito-Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: bold;
+}
+
+body {
+    font-family: "Nunito", "Segoe UI", Roboto, Arial, sans-serif;
+    margin: 0;
+    padding: 0 2rem 2rem;
+    color: var(--navy);
+    font-size: 17px;
+    background-color: var(--bg-tint);
+    background-image: url("/img/back.jpg");
+    background-repeat: repeat;
+    background-size: 400px;
+}
+
+.site-header {
+    display: flex;
+    align-items: center;      /* вертикальное центрирование заголовка */
+    justify-content: center;  /* заголовок — по горизонтали в центр */
+    position: relative;       /* якорь для абсолютного логотипа */
+    min-height: 140px;        /* шапка держит размер под логотип: 128px + воздух */
+    padding: 8px 0;
+    margin-bottom: 50px;      /* дополнительный отступ после заголовка */
+    background-image: radial-gradient(ellipse at center,
+            rgba(21, 90, 115, 0.4) 0%,
+            rgba(21, 90, 115, 0) 70%);
+}
+
+.site-header img {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 128px;
+    width: auto;
+    border-radius: 8px;
+}
+
+.site-header h1 {
+    margin: 0;
+    color: var(--primary-dark);
+}
+
+/* Единый стиль для кнопок и ссылок-кнопок */
+.btn {
+    display: inline-block;
+    padding: 8px 20px;
+    background: var(--primary);
+    border: 0;
+    border-radius: 8px;
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    font-family: inherit;
+    margin: 0 2px;
+    opacity: 0.85;
+    cursor: pointer;
+    margin: 0 2px;
+}
+
+.list-actions {
+    margin-bottom: 16px;
+}
+
+.btn:hover {
+    box-shadow: 0 2px 4px #ccc;
+    opacity: 1;
+}
+
+.btn-danger {
+    background: var(--danger);
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background: var(--card);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(29, 61, 92, 0.15);
+}
+
+
+th, td {
+    border: 1px solid #cfe2e7;   /* чуть темнее прежнего #d7e9ec, чтобы сетка читалась */
+    padding: 8px 12px;
+    text-align: left;
+}
+
+th {
+    background: var(--primary);
+    color: #fff;
+}
+
+tr:hover td {
+    background: #eef7f9;
+}
+
+label {
+    display: block;
+    margin-top: 12px;
+    font-weight: bold;
+}
+
+input, textarea {
+    padding: 6px;
+    width: 260px;
+    border: 1px solid #bcd6dd;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 16px;
+}
+
+button {
+    font-family: inherit;
+}
+
+.errors {
+    color: #a12622;
+    background: #fdecea;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+}
+
+.form-card {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 20px 24px;
+    max-width: 480px;
+    box-shadow: 0 2px 6px rgba(29, 61, 92, 0.15);
+}
+
+.actions {
+    margin-top: 16px;
+}

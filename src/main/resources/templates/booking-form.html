@@ -3,47 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="${booking.id != null} ? 'Редактирование брони' : 'Новая бронь'">Бронь</title>
-    <style>
-        body { font-family: sans-serif; margin: 2rem; }
-        label { display: block; margin-top: 12px; font-weight: bold; }
-        input, textarea { padding: 4px; width: 260px; }
-        .errors { color: #b00020; background: #fdecea; border: 1px solid #f5c6cb;
-                  padding: 10px; border-radius: 4px; }
-        .btn { margin-top: 16px; padding: 6px 16px; cursor: pointer; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<h1 th:text="${booking.id != null} ? 'Редактирование брони' : 'Новая бронь'">Бронь</h1>
+<header class="site-header">
+    <img th:src="@{/img/logo.jpg}" alt="Логотип отеля">
+    <h1>Отель «Весёлый Тестировщик»</h1>
+</header>
 
-<form method="post"
-      th:action="${booking.id != null} ? @{/bookings/{id}/edit(id=${booking.id})} : @{/bookings}"
-      th:object="${booking}">
+<div class="form-card">
+    <h1 th:text="${booking.id != null} ? 'Редактирование брони' : 'Новая бронь'">Бронь</h1>
 
-    <div class="errors" th:if="${#fields.hasAnyErrors()}">
-        <ul>
-            <li th:each="err : ${#fields.allErrors()}" th:text="${err}">Ошибка</li>
-        </ul>
-    </div>
+    <form method="post"
+          th:action="${booking.id != null} ? @{/bookings/{id}/edit(id=${booking.id})} : @{/bookings}"
+          th:object="${booking}">
 
-    <label for="roomNumber">Номер (101–150, 201–250, 301–350, 401–450, 501–550)</label>
-    <input type="number" id="roomNumber" th:field="*{roomNumber}">
+        <div class="errors" th:if="${#fields.hasAnyErrors()}">
+            <ul>
+                <li th:each="err : ${#fields.allErrors()}" th:text="${err}">Ошибка</li>
+            </ul>
+        </div>
 
-    <label for="guestName">Гость (до 100 символов)</label>
-    <input type="text" id="guestName" th:field="*{guestName}" maxlength="100">
+        <label for="roomNumber">Номер (101–150, 201–250, 301–350, 401–450, 501–550)</label>
+        <input type="number" id="roomNumber" th:field="*{roomNumber}">
 
-    <label for="bookedFrom">Дата заезда</label>
-    <input type="date" id="bookedFrom" th:field="*{bookedFrom}">
+        <label for="guestName">Гость (до 100 символов)</label>
+        <input type="text" id="guestName" th:field="*{guestName}" maxlength="100">
 
-    <label for="bookedTo">Дата выезда</label>
-    <input type="date" id="bookedTo" th:field="*{bookedTo}">
+        <label for="bookedFrom">Дата заезда</label>
+        <input type="date" id="bookedFrom" th:field="*{bookedFrom}">
 
-    <label for="comment">Комментарий (до 200 символов)</label>
-    <textarea id="comment" th:field="*{comment}" maxlength="200"></textarea>
+        <label for="bookedTo">Дата выезда</label>
+        <input type="date" id="bookedTo" th:field="*{bookedTo}">
 
-    <div>
-        <button type="submit" class="btn">Сохранить</button>
-        <a th:href="@{/bookings}">Отмена</a>
-    </div>
-</form>
+        <label for="comment">Комментарий (до 200 символов)</label>
+        <textarea id="comment" th:field="*{comment}" maxlength="200"></textarea>
+
+        <div class="actions">
+            <button type="submit" class="btn">Сохранить</button>
+            <a th:href="@{/bookings}" class="btn">Отмена</a>
+        </div>
+    </form>
+</div>
 </body>
 </html>
