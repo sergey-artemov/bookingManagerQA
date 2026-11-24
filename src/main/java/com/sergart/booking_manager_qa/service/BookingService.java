@@ -4,6 +4,7 @@ import com.sergart.booking_manager_qa.db.Booking;
 import com.sergart.booking_manager_qa.exception.BookingConflictException;
 import com.sergart.booking_manager_qa.exception.NotFoundException;
 import com.sergart.booking_manager_qa.repository.BookingRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public class BookingService {
     }
 
     public List<Booking> findAll() {
-        return repository.findAll();
+        return repository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     public Booking findById(Long id) {

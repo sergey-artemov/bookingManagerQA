@@ -56,17 +56,6 @@ class BookingUiTest {
         return bookingRepository.save(b);
     }
 
-    private String postForm22(String action, String room, String guest,
-                            String from, String to) throws Exception {
-        return mockMvc.perform(post(action)
-                        .param("roomNumber", room)
-                        .param("guestName", guest)
-                        .param("bookedFrom", from)
-                        .param("bookedTo", to))
-                .andReturn().getResponse().getContentAsString();
-    }
-
-
     private String postForm(String action, String room, String guest,
                             String from, String to) throws Exception {
         var result = mockMvc.perform(post(action)
@@ -76,10 +65,6 @@ class BookingUiTest {
                         .param("bookedTo", to))
                 .andDo(print())   // полная картина: статус, заголовки, тело
                 .andReturn();
-
-        System.out.println("STATUS = " + result.getResponse().getStatus());
-        System.out.println("BODY   = [" + result.getResponse()
-                .getContentAsString(StandardCharsets.UTF_8) + "]");
         return result.getResponse().getContentAsString(StandardCharsets.UTF_8);
     }
 
