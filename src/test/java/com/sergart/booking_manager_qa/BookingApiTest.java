@@ -18,6 +18,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,6 +44,12 @@ class BookingApiTest {
     @Autowired
     BookingRepository bookingRepository;
 
+    private static final AtomicInteger ROOM_SEQ = new AtomicInteger(501);
+
+    private String nextRoom() {
+        return String.valueOf(ROOM_SEQ.getAndIncrement());
+    }
+
     @BeforeEach
     void setUp() {
         RestAssured.baseURI = "http://localhost";
@@ -54,15 +61,16 @@ class BookingApiTest {
     @Test
     @DisplayName("POS: POST валидной брони -> 201, запись есть в БД")
     void createBooking_success() {
+        String room = nextRoom();
         String body = """
                 {
-                  "roomNumber": 550,
+                  "roomNumber": %s,
                   "bookedFrom": "2030-06-01",
                   "bookedTo": "2030-06-05",
                   "guestName": "Тестов Тест Тестович",
                   "comment": "автотест POS"
                 }
-                """;
+                """.formatted(room);
 
         Integer id = given()
                 .contentType(ContentType.JSON)
@@ -72,7 +80,7 @@ class BookingApiTest {
                 .then()
                 .statusCode(201)
                 .body("id", notNullValue())
-                .body("roomNumber", equalTo(550))
+                .body("roomNumber", equalTo(Integer.valueOf(room)))
                 .extract().path("id");
 
         // проверка второго слоя: запись реально в базе
@@ -82,7 +90,8 @@ class BookingApiTest {
     @Test
     @DisplayName("POS: DELETE валидной брони -> 204, нет записи в БД")
     void deleteBooking_success() {
-        int id = createBooking(234, "2030-07-01", "2030-07-05");
+        int room = Integer.parseInt(nextRoom());
+        int id = createBooking(room, "2030-07-01", "2030-07-05");
 
         given()
                 .when()
@@ -145,14 +154,15 @@ class BookingApiTest {
     @Test
     @DisplayName("NEG: POST с одинаковыми датами -> 400 с сообщением о датах")
     void createBooking_equalDates() {
+        String room = nextRoom();
         String body = """
                 {
-                  "roomNumber": 333,
+                  "roomNumber": %s,
                   "bookedFrom": "2030-06-01",
                   "bookedTo": "2030-06-01",
                   "guestName": "Тестов1 Тест1 Тестович1"
                 }
-                """;
+                """.formatted(room);
 
         given()
                 .contentType(ContentType.JSON)
@@ -167,14 +177,15 @@ class BookingApiTest {
     @Test
     @DisplayName("NEG: POST  дата начала больше чем дата окончания -> 400 с сообщением о датах")
     void createBooking_FromDateAfterToDate() {
+        String room = nextRoom();
         String body = """
                 {
-                  "roomNumber": 333,
+                  "roomNumber": %s,
                   "bookedFrom": "2030-06-01",
                   "bookedTo": "2030-05-10",
                   "guestName": "Тестов Тест Тестович"
                 }
-                """;
+                """.formatted(room);
 
         given()
                 .contentType(ContentType.JSON)
@@ -191,17 +202,17 @@ class BookingApiTest {
     void createBooking_DatesLessThatToday() {
         LocalDate from = LocalDate.now().minusDays(10);
         LocalDate to = LocalDate.now().minusDays(5);
-
+        String room = nextRoom();
         String body = """
                 {
-                  "roomNumber": 444,
+                  "roomNumber": %s,
                   "bookedFrom": "%s",
                   "bookedTo": "%s",
                   "guestName": "Тестов Тест Тестович"
                 }
-                """
-                .formatted(from.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                        to.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                """.formatted(room,
+                from.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                to.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
         given()
                 .contentType(ContentType.JSON)
@@ -219,15 +230,17 @@ class BookingApiTest {
     @Test
     @DisplayName("NEG: пересечение дат на один номер -> 409 (регресс BUG-001)")
     void createBooking_overlap_conflict() {
-        postBooking(501, "2030-07-01", "2030-07-05", 201);   // базовая бронь
-        postBooking(501, "2030-07-04", "2030-07-10", 409);   // пересекается -> конфликт
+        int room = Integer.parseInt(nextRoom());
+        postBooking(room, "2030-07-01", "2030-07-05", 201);   // базовая бронь
+        postBooking(room, "2030-07-04", "2030-07-10", 409);   // пересекается -> конфликт
     }
 
     @Test
     @DisplayName("POS: стык день в день (выезд 05.07 -> заезд 05.07) -> 201")
     void createBooking_backToBackAllowed() {
-        postBooking(502, "2030-07-01", "2030-07-05", 201);
-        postBooking(502, "2030-07-05", "2030-07-08", 201);   // стык разрешён
+        int room = Integer.parseInt(nextRoom());
+        postBooking(room, "2030-07-01", "2030-07-05", 201);
+        postBooking(room, "2030-07-05", "2030-07-08", 201);   // стык разрешён
     }
 
     // ---------- NEG: несуществующий id ----------
@@ -246,21 +259,21 @@ class BookingApiTest {
     @Test
     @DisplayName("NEG: DELETE отсутствующей брони -> 404, нет записи в БД")
     void deleteBooking_fail() {
-        assertThat(bookingRepository.findById(12345L)).isEmpty();
+        assertThat(bookingRepository.findById(1234567L)).isEmpty();
         given()
                 .when()
-                .delete("/api/bookings/12345")
+                .delete("/api/bookings/1234567")
                 .then()
                 .statusCode(404)
                 .body("status", equalTo(404))
-                .body("errors", hasItem(containsString("Бронирование с id=12345 не найдено")));
+                .body("errors", hasItem(containsString("Бронирование с id=1234567 не найдено")));
     }
 
     //========== Full Life Cycle Test ============================
     @Test
     @DisplayName("E2E: создать -> прочитать -> обновить -> поймать конфликт -> удалить")
     void fullLifecycle_scenario() {
-        int roomNumber = 525;
+        int roomNumber = Integer.parseInt(nextRoom());
         int bookingSize = 8;  // заполнение из V1_init.sql
 
         // 1. Создание
