@@ -39,7 +39,7 @@ class BookingUiSelenideTest {
     @Autowired
     BookingRepository bookingRepository;
 
-    private static final AtomicInteger ROOM_SEQ = new AtomicInteger(501);
+    private static final AtomicInteger ROOM_SEQ = new AtomicInteger(401);
 
     private String nextRoom() {
         return String.valueOf(ROOM_SEQ.getAndIncrement());

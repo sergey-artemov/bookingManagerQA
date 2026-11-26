@@ -28,6 +28,9 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
 
 volumes:
   pgdata:
+  pgadmin_data:

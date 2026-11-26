@@ -40,8 +40,8 @@ class BookingUiTest {
     @Autowired
     BookingRepository bookingRepository;
 
-    // Уникальные номера из диапазона 501–550, чтобы тесты не мешали друг другу
-    private static final AtomicInteger ROOM_SEQ = new AtomicInteger(501);
+    // Уникальные номера из диапазона 401–450, чтобы тесты не мешали друг другу
+    private static final AtomicInteger ROOM_SEQ = new AtomicInteger(401);
 
     private String nextRoom() {
         return String.valueOf(ROOM_SEQ.getAndIncrement());
