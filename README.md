@@ -85,6 +85,6 @@ mvn spring-boot:run
 - [x] Автотесты: Rest Assured + Testcontainers
 - [x] Простой UI (Thymeleaf): список броней + форма
 - [x] UI-тест (Selenium) — 2 сценария
-- [ ] UI-тест (Playwright) — 1 сценарий
-- [ ] Отчёт Allure (allure-selenide + allure-jupiter)
+- [x] UI-тест (Playwright) — 1 сценарий
+- [x] Отчёт Allure (allure-selenide + allure-jupiter)
 

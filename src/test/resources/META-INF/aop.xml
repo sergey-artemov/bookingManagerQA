@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aspectj>
+    <weaver>
+        <exclude within="org.springframework..*"/>
+        <exclude within="oracle..*"/>
+        <exclude within="com.mchange..*"/>
+        <exclude within="com.zaxxer..*"/>
+    </weaver>
+</aspectj>
