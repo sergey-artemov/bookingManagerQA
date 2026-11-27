@@ -1,10 +1,20 @@
 package com.sergart.booking_manager_qa;
 
 import com.sergart.booking_manager_qa.repository.BookingRepository;
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Owner;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Step;
+import io.qameta.allure.Story;
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import lombok.extern.log4j.Log4j2;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +42,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @Log4j2
+@Epic("Booking management")
+@Feature("Bookings API")
 class BookingApiTest {
 
     @Container
@@ -46,20 +58,31 @@ class BookingApiTest {
 
     private static final AtomicInteger ROOM_SEQ = new AtomicInteger(401);
 
+    @Step("  Получить следущую комнату")
     private String nextRoom() {
         return String.valueOf(ROOM_SEQ.getAndIncrement());
     }
 
+    @BeforeAll
+    @Step("  Before All")
+    static void setUpRestAssured() {
+        RestAssured.filters(new AllureRestAssured());
+    }
+
     @BeforeEach
+    @Step("  Before Each")
     void setUp() {
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
     }
 
     // ---------- POS: создание + проверка в БД ----------
-
     @Test
     @DisplayName("POS: POST валидной брони -> 201, запись есть в БД")
+    @Story("Создание бронирования")
+    @Description("POST /bookings с корректным JSON должен вернуть 201 и сохранить букинг в БД")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void createBooking_success() {
         String room = nextRoom();
         String body = """
@@ -89,6 +112,10 @@ class BookingApiTest {
 
     @Test
     @DisplayName("POS: DELETE валидной брони -> 204, нет записи в БД")
+    @Story("Удаление бронирования")
+    @Description("DELETE /bookings с корректным id должен вернуть 204 и удалить букинг из БД")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void deleteBooking_success() {
         int room = Integer.parseInt(nextRoom());
         int id = createBooking(room, "2030-07-01", "2030-07-05");
@@ -111,6 +138,10 @@ class BookingApiTest {
 
     @Test
     @DisplayName("NEG: POST с roomNumber=999 -> 400 с сообщением о диапазоне")
+    @Story("Создание бронирования")
+    @Description("POST /bookings с некорректным JSON должен вернуть 400")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void createBooking_invalidRoom() {
         String body = """
                 {
@@ -133,6 +164,10 @@ class BookingApiTest {
 
     @Test
     @DisplayName("NEG: POST с пустым запросом -> 400  с сообщением о незаполненных полях")
+    @Story("Создание бронирования")
+    @Description("POST /bookings с пустым JSON должен вернуть 400 и несколько сообщений о незаполненных полях")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void createBooking_emptyRequest() {
         String body = "{}";
 
@@ -153,6 +188,10 @@ class BookingApiTest {
 
     @Test
     @DisplayName("NEG: POST с одинаковыми датами -> 400 с сообщением о датах")
+    @Story("Создание бронирования")
+    @Description("POST /bookings с некорректным JSON (одинаковые даты) должен вернуть 400 и сообщение о датах")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void createBooking_equalDates() {
         String room = nextRoom();
         String body = """
@@ -175,7 +214,11 @@ class BookingApiTest {
     }
 
     @Test
-    @DisplayName("NEG: POST  дата начала больше чем дата окончания -> 400 с сообщением о датах")
+    @DisplayName("NEG: POST дата начала больше чем дата окончания -> 400 с сообщением о датах")
+    @Story("Создание бронирования")
+    @Description("POST /bookings с некорректным JSON (дата начала больше даты окончания) должен вернуть 400 и сообщение о датах")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void createBooking_FromDateAfterToDate() {
         String room = nextRoom();
         String body = """
@@ -199,6 +242,10 @@ class BookingApiTest {
 
     @Test
     @DisplayName("NEG: POST  дата начала или окончания меньше текущей-> 400 с сообщением о датах")
+    @Story("Создание бронирования")
+    @Description("POST /bookings с некорректным JSON (дата начала или окончания меньше текущей) должен вернуть 400 и сообщение о датах")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void createBooking_DatesLessThatToday() {
         LocalDate from = LocalDate.now().minusDays(10);
         LocalDate to = LocalDate.now().minusDays(5);
@@ -229,6 +276,10 @@ class BookingApiTest {
 
     @Test
     @DisplayName("NEG: пересечение дат на один номер -> 409 (регресс BUG-001)")
+    @Story("Создание бронирования")
+    @Description("POST /bookings с пересечением дат с другим бронированием должен вернуть 400 и сообщение о пересечении")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void createBooking_overlap_conflict() {
         int room = Integer.parseInt(nextRoom());
         postBooking(room, "2030-07-01", "2030-07-05", 201);   // базовая бронь
@@ -237,6 +288,10 @@ class BookingApiTest {
 
     @Test
     @DisplayName("POS: стык день в день (выезд 05.07 -> заезд 05.07) -> 201")
+    @Story("Создание бронирования")
+    @Description("POST /bookings с пересечением дат с другим бронированием стык в стык должен вернуть 201")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void createBooking_backToBackAllowed() {
         int room = Integer.parseInt(nextRoom());
         postBooking(room, "2030-07-01", "2030-07-05", 201);
@@ -246,6 +301,10 @@ class BookingApiTest {
     // ---------- NEG: несуществующий id ----------
     @Test
     @DisplayName("NEG: GET несуществующего id -> 404 с JSON-ошибкой")
+    @Story("Получение бронирования")
+    @Description("GET /bookings с несуществующим id должен вернуть 404")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void getBooking_notFound() {
         given()
                 .when()
@@ -258,6 +317,10 @@ class BookingApiTest {
 
     @Test
     @DisplayName("NEG: DELETE отсутствующей брони -> 404, нет записи в БД")
+    @Story("Удаление бронирования")
+    @Description("DELETE /bookings с несуществующим id должен вернуть 404")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void deleteBooking_fail() {
         assertThat(bookingRepository.findById(1234567L)).isEmpty();
         given()
@@ -272,6 +335,10 @@ class BookingApiTest {
     //========== Full Life Cycle Test ============================
     @Test
     @DisplayName("E2E: создать -> прочитать -> обновить -> поймать конфликт -> удалить")
+    @Story("Полный цикл")
+    @Description("Полный цикл E2E : создание - чтение - обновление - конфликт - удаление")
+    @Severity(SeverityLevel.CRITICAL)
+    @Owner("Sergey")
     void fullLifecycle_scenario() {
         int roomNumber = Integer.parseInt(nextRoom());
         int bookingSize = 8;  // заполнение из V1_init.sql
@@ -342,6 +409,7 @@ class BookingApiTest {
     }
 
     // ---------- хелпер ----------
+    @Step("  Создать бронирование: номер {room} с {from} по {to}, ожидаемый статус {expectedStatus}")
     private void postBooking(int room, String from, String to, int expectedStatus) {
         given()
                 .contentType(ContentType.JSON)
@@ -352,6 +420,7 @@ class BookingApiTest {
                 .statusCode(expectedStatus);
     }
 
+    @Step("  Создать бронирование: номер {room} с {from} по {to}")
     private Integer createBooking(int room, String from, String to) {
         return given()
                 .contentType(ContentType.JSON)
@@ -364,6 +433,7 @@ class BookingApiTest {
     }
 
 
+    @Step("  Создание JSON бронирования: номер {room} с {from} по {to}")
     private String bookingJson(int room, String from, String to) {
         return """
                 {

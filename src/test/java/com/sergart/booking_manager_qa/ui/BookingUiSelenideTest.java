@@ -3,9 +3,20 @@ package com.sergart.booking_manager_qa.ui;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.logevents.SelenideLogger;
 import com.sergart.booking_manager_qa.db.Booking;
 import com.sergart.booking_manager_qa.repository.BookingRepository;
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Owner;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Step;
+import io.qameta.allure.Story;
+import io.qameta.allure.selenide.AllureSelenide;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,6 +38,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
+@Epic("Booking management")
+@Feature("Bookings UI")
 class BookingUiSelenideTest {
 
     @Container
@@ -41,10 +54,12 @@ class BookingUiSelenideTest {
 
     private static final AtomicInteger ROOM_SEQ = new AtomicInteger(401);
 
+    @Step("  Получить следущую комнату")
     private String nextRoom() {
         return String.valueOf(ROOM_SEQ.getAndIncrement());
     }
 
+    @Step("  Before All")
     @BeforeAll
     static void setUp() {
         Configuration.headless = true;       // на CI окно не нужно; false — чтобы смотреть глазами
@@ -52,9 +67,20 @@ class BookingUiSelenideTest {
         Configuration.browserSize = "1920x1080";
         Configuration.timeout = 8000;        // дефолт 4s
         System.setProperty("chromeoptions.args", "--lang=ru");
+
+        SelenideLogger.addListener("allure", new AllureSelenide()
+                 //    .screenshots(true)            // скриншот при падении шага (по умолчанию true)
+                // .savePageSource(true)         // HTML страницы при падении шага (по умолчанию true)
+                // .includeSelenideSteps(true)   // каждое действие Selenide как отдельный шаг
+        );
     }
 
     @Test
+    @Story("Создание бронирования")
+    @DisplayName("Полный цикл бронирования Е2Е  Selenide")
+    @Description("Полный цикл бронирования e2e : заполнение, сохранение, удаление с подтверждением")
+    @Severity(SeverityLevel.NORMAL)
+    @Owner("Sergey")
     void selenide_fullLifecycle_createCheckDeleteWithConfirm() {
         String room = nextRoom();
         String guest = "E2E Guest";
@@ -102,6 +128,11 @@ class BookingUiSelenideTest {
     }
 
     @Test
+    @Story("Создание бронирования")
+    @DisplayName("Бронирование с перекрытием")
+    @Description("Создаём  бронирование с перекрытием другого брониования - остаёмся на форме с ошибкой")
+    @Severity(SeverityLevel.NORMAL)
+    @Owner("Sergey")
     void selenide_createOverlappingBooking_staysOnFormWithError() {
         String room = nextRoom();
         LocalDate from = LocalDate.now().plusDays(1);
@@ -120,9 +151,6 @@ class BookingUiSelenideTest {
         $x("//a[text()='Новая бронь']").click();
         $("#roomNumber").setValue(room);
         $("#guestName").setValue("Overlap Guest");
-        //$("#bookedFrom").setValue(from.toString());
-        //$("#bookedTo").setValue(to.toString());
-
         setDate("bookedFrom", from);  // "bookedFrom"
         setDate("bookedTo", to);
 
@@ -134,10 +162,10 @@ class BookingUiSelenideTest {
         $(".errors").shouldHave(text("Номер " + room + " уже забронирован"));
     }
 
+    @Step("  Форматирование даты : inputId = {inputId}  date = {date}")
     private void setDate(String inputId, LocalDate date) {
         Selenide.executeJavaScript(
                 "document.getElementById(arguments[0]).value = arguments[1]",
                 inputId, date.toString());   // date.toString() даёт ISO: 2026-11-25
     }
-
 }

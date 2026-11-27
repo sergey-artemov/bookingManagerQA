@@ -7,9 +7,18 @@ import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.assertions.PlaywrightAssertions;
 import com.microsoft.playwright.options.AriaRole;
 import com.sergart.booking_manager_qa.repository.BookingRepository;
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Owner;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Step;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Epic("Booking management")
+@Feature("Bookings UI")
 class BookingUiPlaywrightTest {
 
     @Container
@@ -53,17 +64,20 @@ class BookingUiPlaywrightTest {
 
     private static final AtomicInteger ROOM_SEQ = new AtomicInteger(401);
 
+    @Step("  Получить следущую комнату")
     private String nextRoom() {
         return String.valueOf(ROOM_SEQ.getAndIncrement());
     }
 
     @BeforeAll
+    @Step("  Before All")
     void launchBrowser() {
         playwright = Playwright.create();
         browser = playwright.chromium().launch();   // headless по умолчанию
     }
 
     @BeforeEach
+    @Step("  Before Each")
     void createPage() {
         acceptDialogs.set(false);
         dialogMessages.clear();
@@ -79,12 +93,18 @@ class BookingUiPlaywrightTest {
     }
 
     @AfterAll
+    @Step("  After All")
     void close() {
         browser.close();
         playwright.close();
     }
 
     @Test
+    @Story("Создание бронирования")
+    @DisplayName("Полный цикл бронирования Е2Е  Playwright")
+    @Description("Полный цикл бронирования e2e : заполнение, сохранение, удаление с подтверждением")
+    @Severity(SeverityLevel.NORMAL)
+    @Owner("Sergey")
     void playwright_fullLifecycle_createCheckDeleteWithConfirm() {
         String room = nextRoom();
         String guest = "PW Guest";

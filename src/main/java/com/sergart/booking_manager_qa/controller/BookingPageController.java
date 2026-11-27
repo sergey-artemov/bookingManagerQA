@@ -1,4 +1,4 @@
-package com.sergart.booking_manager_qa.ui;
+package com.sergart.booking_manager_qa.controller;
 
 import com.sergart.booking_manager_qa.db.Booking;
 import com.sergart.booking_manager_qa.exception.BookingConflictException;

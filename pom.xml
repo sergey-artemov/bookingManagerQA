@@ -11,14 +11,30 @@
 
 	<groupId>com.sergart</groupId>
 	<artifactId>booking-manager-qa</artifactId>
-	<version>1.1.0</version>
+	<version>1.2.0</version>
     <name>booking-manager-qa</name>
     <description>Pet project for QA: manual + automated testing (API + DB)</description>
 
 	<properties>
 		<java.version>17</java.version>
 		<testcontainers.version>1.21.4</testcontainers.version>
+		<allure.version>3.0.0</allure.version>
+		<aspectj.version>1.9.24</aspectj.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- BOM, чтобы все allure-модули были одной версии -->
+			<dependency>
+				<groupId>io.qameta.allure</groupId>
+				<artifactId>allure-bom</artifactId>
+				<version>${allure.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -122,6 +138,35 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Allure -->
+		<!-- JUnit 5 (в Allure 3 — allure-jupiter вместо allure-junit5) -->
+		<dependency>
+			<groupId>io.qameta.allure</groupId>
+			<artifactId>allure-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Selenide: скриншоты и page source при падении -->
+		<dependency>
+			<groupId>io.qameta.allure</groupId>
+			<artifactId>allure-selenide</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- RestAssured: запрос/ответ как вложения в отчёте -->
+		<dependency>
+			<groupId>io.qameta.allure</groupId>
+			<artifactId>allure-rest-assured</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Playwright: шаги браузера и автоскриншоты -->
+		<dependency>
+			<groupId>io.qameta.allure</groupId>
+			<artifactId>allure-playwright</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -173,6 +218,22 @@
 					<environmentVariables>
 						<DOCKER_HOST>npipe:////./pipe/dockerDesktopLinuxEngine</DOCKER_HOST>
 					</environmentVariables>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>
+						-javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+						-Dorg.aspectj.dump.directory=${project.build.directory}/ajdump
+					</argLine>
+					<properties>
+						<configurationParameters>
+							junit.jupiter.extensions.autodetection.enabled=true
+						</configurationParameters>
+					</properties>
 				</configuration>
 			</plugin>
 		</plugins>
