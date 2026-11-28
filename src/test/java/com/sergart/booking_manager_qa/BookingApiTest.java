@@ -25,6 +25,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import utils.BookingQaTestUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -67,6 +68,7 @@ class BookingApiTest {
     @Step("  Before All")
     static void setUpRestAssured() {
         RestAssured.filters(new AllureRestAssured());
+        BookingQaTestUtils.writeEnvironment();
     }
 
     @BeforeEach

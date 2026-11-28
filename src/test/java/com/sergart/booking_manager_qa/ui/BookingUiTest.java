@@ -10,6 +10,9 @@ import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.qameta.allure.Step;
 import io.qameta.allure.Story;
+import io.qameta.allure.restassured.AllureRestAssured;
+import io.restassured.RestAssured;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +54,12 @@ class BookingUiTest {
 
     @Autowired
     BookingRepository bookingRepository;
+
+    @BeforeAll
+    @Step("  Before All")
+    static void setUpRestAssured() {
+        BookingQaTestUtils.writeEnvironment();
+    }
 
     // Уникальные номера из диапазона 401–450, чтобы тесты не мешали друг другу
     private static final AtomicInteger ROOM_SEQ = new AtomicInteger(401);

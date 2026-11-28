@@ -25,6 +25,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import utils.BookingQaTestUtils;
 
 import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -69,10 +70,11 @@ class BookingUiSelenideTest {
         System.setProperty("chromeoptions.args", "--lang=ru");
 
         SelenideLogger.addListener("allure", new AllureSelenide()
-                 //    .screenshots(true)            // скриншот при падении шага (по умолчанию true)
+                //    .screenshots(true)            // скриншот при падении шага (по умолчанию true)
                 // .savePageSource(true)         // HTML страницы при падении шага (по умолчанию true)
                 // .includeSelenideSteps(true)   // каждое действие Selenide как отдельный шаг
         );
+        BookingQaTestUtils.writeEnvironment();
     }
 
     @Test

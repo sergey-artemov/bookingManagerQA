@@ -28,6 +28,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import utils.BookingQaTestUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -74,6 +75,7 @@ class BookingUiPlaywrightTest {
     void launchBrowser() {
         playwright = Playwright.create();
         browser = playwright.chromium().launch();   // headless по умолчанию
+        BookingQaTestUtils.writeEnvironment();
     }
 
     @BeforeEach

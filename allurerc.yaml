@@ -1,5 +1,6 @@
 name: Booking Manager QA
-output: ./allure-report
+output: ./target/allure-report
+historyPath: ./allure-history/history.jsonl
 plugins:
   awesome:
     options:
